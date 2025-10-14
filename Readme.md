@@ -1,6 +1,10 @@
-# Project Title
+# Vaudoise assurance test
 
 ## Prerequisites
+VS Code
+Docker
+- JDK 25
+- MySQL
 
 ## Installation
 
@@ -17,3 +21,5 @@
 ## Project Structure
 
 ## Authors
+
+Devanthéry Noa
