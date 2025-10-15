@@ -33,6 +33,7 @@ L’application se connecte à la base via un réseau interne Docker et expose s
 | `POST` | `/api/clients/{clientId}/contracts` | Crée un nouveau contrat pour un client donné |
 | `PATCH` | `/api/clients/{clientId}/contracts/{contractId}` | Met à jour un contrat spécifique |
 | `GET` | `/api/clients/{clientId}/contracts/sum` | Calcule la somme totale des contrats actifs d’un client |
+| `DELETE` | `/api/clients/{clientId}/contracts/{contractId}` | Supprime un contrat |
 
 
 ## Preuve de fonctionnement
