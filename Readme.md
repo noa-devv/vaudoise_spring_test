@@ -47,12 +47,35 @@ Les endpoints ont été testés avec **Postman** et répondent avec les statuts 
 ## Installation & Exécution
 ### Prérequis
 - Docker & Docker Compose installés
+- Postman pour tester
 
 ### Lancement avec Docker
 docker-compose up --build
 
 L’API sera disponible sur http://localhost:8080
 La base de donnée MySQL sera disponible sur http://localhost:3306 (voir variables dans docker-compose.yml).
+
+### Lancement avec l'environnement de développement
+
+1. **Ouvrir le projet** dans VS Code.  
+2. **Installer les extensions recommandées** :
+   - **Debugger for Java** : pour exécuter et déboguer l’application.  
+   - **Language Support for Java** : fournit la complétion et le support du langage.  
+   - **Spring Boot Extension Pack** : outils pour gérer les projets Spring Boot (run, debug, navigate).  
+   - **Test Runner for Java** : pour lancer les tests unitaires et d’intégration.  
+
+3. **Configurer la base de données** : lancer la commande "docker run --name db-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=insurance_db -e MYSQL_USER=user -e MYSQL_PASSWORD=1234 -p 3306:3306 -d mysql:8.1" dans un terminal  
+
+4. **Lancer l’application** :
+   - Ouvrir le fichier `ClientmanagerApplication.java`.
+   - Cliquer sur **Run** ou **Debug** dans VS Code via le panneau de débogage.  
+   - L’API sera accessible sur `http://localhost:8080`.  
+
+5. **Tester l’API** : utilisez Postman pour envoyer des requêtes aux endpoints listés dans la section **Clients & Contrats**.
+
+6. **Lancer les tests** :
+   - Ouvrir le fichier `C:\Projet_test_vaudoise\clientmanager\src\test\java\ch\devanthery\clientmanager\ClientmanagerApplicationTests.java`.
+   - Cliquer sur la flèche verte au niveau du nom de la classe (possible grace à Test Runner for Java).
 
 ## Tests avec Postman
 
@@ -71,6 +94,7 @@ Elle contient tous les appels nécessaires pour tester les fonctionnalités prin
 | 8 | Get contracts (filtrés) | `GET` | `/api/clients/{id}/contracts?updateDateFilter=YYYY-MM-DD` | Filtre par date de mise à jour |
 | 9 | Get contracts sum | `GET` | `/api/clients/{id}/contracts/sum` | Calcule le montant total des contrats |
 | 10 | Modify a contract | `PATCH` | `/api/clients/{id}/contracts/{contractId}` | Met à jour le montant d’un contrat |
+| 11 | Delete a contract | `DELETE` | `/api/clients/{id}/contracts/{contractId}` | Supprime un contrat spécifique d’un client |
 
 N'hésitez pas a en créer d'autres ou à modifier les body JSON pour voir les autres comportements de l'API !
 

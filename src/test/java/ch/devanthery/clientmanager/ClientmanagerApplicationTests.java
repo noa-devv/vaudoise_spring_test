@@ -1,28 +1,37 @@
 package ch.devanthery.clientmanager;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
 import ch.devanthery.clientmanager.model.Client;
-import ch.devanthery.clientmanager.model.Company;
-import ch.devanthery.clientmanager.model.Person;
 import ch.devanthery.clientmanager.model.ClientUpdateDto;
+import ch.devanthery.clientmanager.model.Company;
 import ch.devanthery.clientmanager.model.Contract;
+import ch.devanthery.clientmanager.model.Person;
 import ch.devanthery.clientmanager.repository.ClientRepository_I;
 import ch.devanthery.clientmanager.repository.ContractRepository_I;
 import ch.devanthery.clientmanager.service.ClientService;
 import ch.devanthery.clientmanager.service.ContractService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mockito;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ServiceTestConfig.class)
 public class ClientmanagerApplicationTests {
 
     @Autowired
@@ -31,13 +40,13 @@ public class ClientmanagerApplicationTests {
     @Autowired
     private ContractService contractService;
 
-    @Mock
+    @Autowired
     private ClientRepository_I clientRepository;
 
-    @Mock
+    @Autowired
     private ContractRepository_I contractRepository;
 
-    private Person personClient;
+	private Person personClient;
     private Company companyClient;
 
     private Contract activeContract;
@@ -94,7 +103,11 @@ public class ClientmanagerApplicationTests {
     @Test
     public void testDeleteClient() {
         when(clientRepository.findById(1L)).thenReturn(Optional.of(personClient));
-        when(contractRepository.save(any(Contract.class))).thenReturn(activeContract);
+        doAnswer(invocation -> {
+            Contract c = invocation.getArgument(0);
+            c.setEndDate(LocalDate.now());
+            return null;
+        }).when(contractRepository).save(any(Contract.class));
 
         clientService.delete(1L);
 
@@ -113,8 +126,8 @@ public class ClientmanagerApplicationTests {
 
     @Test
     public void testSumPerformance() {
-        List<Contract> bigList = new java.util.ArrayList<>();
-        for (int i = 0; i < 10000; i++) { //Performance test for 10000 contracts
+        List<Contract> bigList = new ArrayList<>();
+        for (int i = 0; i < 10000; i++) {
             Contract c = new Contract();
             c.setCostAmount(10.0);
             c.setStartDate(LocalDate.now().minusDays(5));
@@ -129,7 +142,7 @@ public class ClientmanagerApplicationTests {
         long end = System.nanoTime();
 
         assertEquals(10000 * 10.0, sum);
-        System.out.println("Performance test duration (ms): " + (end - start)/1_000_000);
+        System.out.println("Performance test duration (ms): " + (end - start) / 1_000_000);
     }
 
     @Test
@@ -142,4 +155,46 @@ public class ClientmanagerApplicationTests {
         assertNotNull(created.getClient());
         assertNotNull(personClient.getContracts());
     }
+
+	@Test
+	public void testGetAllByClientId() {
+		personClient.setContracts(List.of(activeContract, endedContract));
+		when(clientRepository.findById(1L)).thenReturn(Optional.of(personClient));
+
+		LocalDate filterDate = LocalDate.now();
+		Iterable<Contract> contracts = contractService.getAllByClientId(1L, filterDate);
+
+		List<Contract> result = new ArrayList<>();
+		contracts.forEach(result::add);
+
+		assertEquals(1, result.size());
+		assertEquals(activeContract, result.get(0));
+	}
+
+	@Test
+	public void testUpdateContract() {
+		activeContract.setCostAmount(1000.0);
+		activeContract.setStartDate(LocalDate.now().minusDays(10));
+		when(contractRepository.findById(1L)).thenReturn(Optional.of(activeContract));
+		when(contractRepository.save(any(Contract.class))).thenAnswer(i -> i.getArgument(0));
+
+		Contract updatedData = new Contract();
+		updatedData.setCostAmount(2000.0);
+		updatedData.setEndDate(LocalDate.now().plusDays(5));
+
+		Contract updated = contractService.update(updatedData, 1L);
+
+		assertEquals(2000.0, updated.getCostAmount());
+		assertEquals(activeContract.getStartDate(), updated.getStartDate());
+		assertEquals(LocalDate.now().plusDays(5), updated.getEndDate());
+	}
+
+	@Test
+	public void testDeleteContract() {
+		doNothing().when(contractRepository).deleteById(1L);
+
+		assertDoesNotThrow(() -> contractService.delete(1L));
+
+		Mockito.verify(contractRepository).deleteById(1L);
+	}
 }
