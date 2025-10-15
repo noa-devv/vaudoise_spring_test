@@ -39,10 +39,16 @@ public class ContractService implements ContractService_I {
 
         LocalDate today = LocalDate.now();
 
-        return client.getContracts().stream()
-            .filter(c -> c.getEndDate() == null || today.isBefore(c.getEndDate())) //c for "contrat"
-            .filter(c -> updateDateFilter == null || !c.getLastUpdateDate().isBefore(updateDateFilter))
-            .toList();
+        if(updateDateFilter != null){
+            return client.getContracts().stream()
+                .filter(c -> c.getLastUpdateDate().isEqual(updateDateFilter)) //c for "contrat"
+                .toList();
+        }
+        else{
+            return client.getContracts().stream()
+                .filter(c -> c.getEndDate() == null || today.isBefore(c.getEndDate())) //c for "contrat"
+                .toList();
+        }
     }
 
     @Override
