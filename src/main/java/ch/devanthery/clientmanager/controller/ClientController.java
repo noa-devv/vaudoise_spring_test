@@ -7,12 +7,13 @@ import ch.devanthery.clientmanager.model.Client;
 import ch.devanthery.clientmanager.model.ClientUpdateDto;
 import ch.devanthery.clientmanager.model.Company;
 import ch.devanthery.clientmanager.service.ContractService;
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.util.*;
+import java.time.LocalDate;
 import java.util.logging.Logger;
 
 @RestController
@@ -21,32 +22,25 @@ public class ClientController {
     private static final Logger LOGGER = Logger.getLogger(ClientController.class.getName());
 
     private final ClientService ClientService;
-    //private final ContractService contractService;
+    private final ContractService contractService;
 
-    public ClientController(@Qualifier("ClientService") ClientService ClientService/*, ContractService contractService*/) {
+    public ClientController(@Qualifier("ClientService") ClientService ClientService, @Qualifier("ContractService")ContractService contractService) {
         this.ClientService = ClientService;
-        //this.contractService = contractService;
+        this.contractService = contractService;
     }
 
-    //GET by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Client> getClientById(@PathVariable Long id) {
-        LOGGER.info("Fetching Client with ID: " + id);
-        return ClientService.getById(id)
+    //GET client by id
+    @GetMapping("/{clientId}")
+    public ResponseEntity<Client> getClientById(@PathVariable Long clientId) {
+        LOGGER.info("Fetching Client with ID: " + clientId);
+        return ClientService.getById(clientId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    //GET ALL
-    /*@GetMapping
-    public ResponseEntity<Iterable<Client>> getAllClients() {
-        LOGGER.info("Fetching all Clients");
-        return ResponseEntity.ok(ClientService.getAll());
-    }*/
-
-    //POST
+    //POST person
     @PostMapping("/person")
-    public ResponseEntity<Person> createPerson(@RequestBody Person person) {
+    public ResponseEntity<Person> createPerson(@Valid @RequestBody Person person) {
         LOGGER.info("Creating a new person: " + person);
         try {
             return ResponseEntity.status(201).body((Person) ClientService.create(person));
@@ -55,8 +49,9 @@ public class ClientController {
         }
     }
 
+    //POST company
     @PostMapping("/company")
-    public ResponseEntity<Company> createCompany(@RequestBody Company company) {
+    public ResponseEntity<Company> createCompany(@Valid @RequestBody Company company) {
         LOGGER.info("Creating a new company: " + company);
         try {
             return ResponseEntity.status(201).body((Company) ClientService.create(company));
@@ -65,24 +60,82 @@ public class ClientController {
         }
     }
 
-    //PUT
-    @PutMapping("/{id}")
-    public ResponseEntity<Client> updateClient(@PathVariable Long id, @RequestBody ClientUpdateDto updatedFields) {
-        LOGGER.info("Updating Client with ID: " + id);
+    //PATCH client
+    @PatchMapping("/{clientId}")
+    public ResponseEntity<Client> updateClient(@PathVariable Long clientId, @Valid @RequestBody ClientUpdateDto updatedFields) {
+        LOGGER.info("Updating Client with ID: " + clientId);
         try {
-            return ResponseEntity.ok(ClientService.update(id, updatedFields));
+            return ResponseEntity.ok(ClientService.update(clientId, updatedFields));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    //DELETE
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
-        LOGGER.info("Deleting Client with ID: " + id);
+    //DELETE client
+    @DeleteMapping("/{clientId}")
+    public ResponseEntity<Void> deleteClient(@PathVariable Long clientId) {
+        LOGGER.info("Deleting Client with ID: " + clientId);
         try {
-            ClientService.delete(id);
+            ClientService.delete(clientId);
             return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //GET contract by client id
+    @GetMapping("/{clientId}/contracts")
+    public ResponseEntity<Iterable<Contract>> getAllContracts(@PathVariable Long clientId, @RequestParam(required = false) LocalDate updateDateFilter) {
+        LOGGER.info("Fetching all contracts for Client ID: " + clientId);
+        try {
+            return ResponseEntity.ok(contractService.getAllByClientId(clientId, updateDateFilter));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //POST contract by client id
+    @PostMapping("/{clientId}/contracts")
+    public ResponseEntity<Contract> postContracts(@PathVariable Long clientId, @Valid @RequestBody Contract contract) {
+        LOGGER.info("Posting a contract for Client ID: " + clientId);
+        System.out.print(clientId);
+        try {
+            return ResponseEntity.status(201).body(contractService.create(contract, clientId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //PATCH contract by client id
+    @PatchMapping("/{clientId}/contracts/{contractId}")
+    public ResponseEntity<Contract> putContracts(@PathVariable Long clientId, @PathVariable Long contractId, @Valid @RequestBody Contract contract) {
+        LOGGER.info("Editing contract ID: " + contractId + " for Client ID: " + clientId);
+
+        try {
+            return ResponseEntity.ok(contractService.update(contract, contractId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //DELETE contract by client id
+    @DeleteMapping("/{clientId}/contracts/{contractId}")
+    public ResponseEntity<Void> deleteContracts(@PathVariable Long clientId, @PathVariable Long contractId) {
+        LOGGER.info("Deleting contract ID: " + contractId + " for Client ID: " + clientId);
+        try {
+            contractService.delete(contractId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    //GET sum of a client contracts
+    @GetMapping("/{clientId}/contracts/sum")
+    public ResponseEntity<Double> getSumOfContracts(@PathVariable Long clientId) {
+        LOGGER.info("Fetching all contracts for Client ID: " + clientId);
+        try {
+            return ResponseEntity.ok(ClientService.getSumOfClientActiveContracts(clientId));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

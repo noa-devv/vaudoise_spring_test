@@ -12,7 +12,7 @@
 	<artifactId>clientmanager</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>clientmanager</name>
-	<description>Demo project for Spring Boot</description>
+	<description></description>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,7 +27,7 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>25</java.version>
+		<java.version>17</java.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -60,8 +60,16 @@
 			<version>8.0.29</version>
 			<scope>runtime</scope>
 		</dependency>
-
-
+		<dependency>
+			<groupId>org.hibernate.validator</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>8.0.1.Final</version>
+		</dependency>
+		<dependency>
+            <groupId>jakarta.el</groupId>
+            <artifactId>jakarta.el-api</artifactId>
+            <version>5.0.0</version>
+        </dependency>
 	</dependencies>
 
 	<build>

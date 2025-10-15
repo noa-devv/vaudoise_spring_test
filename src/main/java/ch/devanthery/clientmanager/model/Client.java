@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "Clients")
@@ -14,11 +15,19 @@ public abstract class Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Should not be blank")
     private String name;
+
+    @Pattern(
+        regexp = "(0\\d{2}|\\+\\d{4})\\s?\\d{3}\\s?\\d{2}\\s?\\d{2}", 
+        message = "The phone number is invalid. Exemple: 012 345 67 89 or +4112 345 67 89"
+    )
     private String phone;
+
+    @Email(message="Invalid email")
     private String email;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "client", cascade = {CascadeType.REMOVE}, orphanRemoval = true)
     @JsonManagedReference
     List<Contract> contracts = new ArrayList<>();
 

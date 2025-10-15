@@ -11,4 +11,5 @@ public interface ClientService_I {
     public Optional<Client> getById(Long id);
     public Client update(Long id, ClientUpdateDto updatedFields);
     public void delete(Long id);
+    public double getSumOfClientActiveContracts(Long clientId);
 }

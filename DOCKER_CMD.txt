@@ -1,0 +1,1 @@
+docker run --name db-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=insurance_db -e MYSQL_USER=user -e MYSQL_PASSWORD=1234 -p 3306:3306 -d mysql:latest
